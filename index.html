@@ -21,7 +21,9 @@
     </div>
     <script>
       window.addEventListener("load", function () {
-     
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("ServiceWorker.js");
+        }
       });
 
       var container = document.querySelector("#unity-container");
@@ -55,12 +57,12 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/783fdf9b5f35a2ef09fb1c7aaf5e1472.loader.js";
+      var loaderUrl = buildUrl + "/fd6eddeba99094a416ecd409cde1bfe1.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/eea8fa2a14355d3c168efbfad3b20ef1.data",
-        frameworkUrl: buildUrl + "/c080e177938dcef1b8f30afb0b963102.framework.js",
-        codeUrl: buildUrl + "/a4692ac2fe6bffceb397dc5bb4e589cf.wasm",
+        dataUrl: buildUrl + "/3de8434548f6355a59feef5a1f70c3fd.data",
+        frameworkUrl: buildUrl + "/9a068bd5f29c5f786d16a6e8b9b0b79f.framework.js",
+        codeUrl: buildUrl + "/32db0186a145e7fdbc3c412ec7f3ebdc.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "FruitMerge",
         productName: "FruitMerge",
