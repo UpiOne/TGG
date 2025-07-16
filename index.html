@@ -3,103 +3,61 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | FruitMerge</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <link rel="manifest" href="manifest.webmanifest">
+    <title>FruitMerge</title>
+    <!-- Подключаем скрипт Telegram для доступа к API -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+      /* Убираем отступы и скроллбары, растягиваем на весь экран */
+      html, body {
+        padding: 0;
+        margin: 0;
+        width: 100vw; /* 100% ширины видимой области */
+        height: 100vh; /* 100% высоты видимой области */
+        overflow: hidden; /* Прячем любые полосы прокрутки */
+        background: #000; /* Черный фон на случай, если игра не загрузится сразу */
+      }
+      /* Растягиваем канвас с игрой на весь доступный размер */
+      #unity-canvas {
+        width: 100%;
+        height: 100%;
+        background: #231F20;
+      }
+    </style>
   </head>
   <body>
-    <div id="unity-container">
-      <canvas id="unity-canvas" width=1920 height=1080 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"> </div>
-    </div>
+    <!-- Элемент canvas, на котором Unity будет рисовать игру -->
+    <canvas id="unity-canvas"></canvas>
+
     <script>
-      window.addEventListener("load", function () {
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.register("ServiceWorker.js");
-        }
-      });
-
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var warningBanner = document.querySelector("#unity-warning");
-
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
-
+      // Конфигурация для запуска Unity
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/9d61d46faecc400ed7401ffabd69dc42.loader.js";
+      var loaderUrl = buildUrl + "/990d6d1f51afc584f651cdb70918bd0c.loader.js";
       var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/05457c19749a79577393b5505e566d06.data",
-        frameworkUrl: buildUrl + "/92855c2387be7777c1c27510210eff60.framework.js",
-        codeUrl: buildUrl + "/81e6a0448d92f603d41f602f61749674.wasm",
+        dataUrl: buildUrl + "/24f84b5c42fdea2e4aeb8d465d57bea1.data",
+        frameworkUrl: buildUrl + "/24199e91a192dd2d9d8592259dac92db.framework.js",
+        codeUrl: buildUrl + "/",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "FruitMerge",
         productName: "FruitMerge",
         productVersion: "0.3",
-        showBanner: unityShowBanner,
       };
 
-      // By default Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
+      var canvas = document.querySelector("#unity-canvas");
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-      }
-
-
-      loadingBar.style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          loadingBar.style.display = "none";
-        }).catch((message) => {
-          alert(message);
-        });
-      };
-      document.body.appendChild(script);
+      // Запускаем Unity и после этого расширяем окно Telegram
+      createUnityInstance(canvas, config, (progress) => {
+        // Тут можно добавить логику для прогресс-бара, если нужно
+      }).then((unityInstance) => {
+        // Как только Unity готов, отправляем команду в Telegram
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.ready(); // Сообщаем, что приложение готово
+          window.Telegram.WebApp.expand(); // РАСШИРЯЕМ ОКНО НА ВЕСЬ ЭКРАН
+          console.log("Telegram WebApp expanded.");
+        }
+      }).catch((message) => {
+        alert(message);
+      });
     </script>
   </body>
 </html>
