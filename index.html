@@ -132,8 +132,20 @@
           console.log('window.Telegram:', window.Telegram);
           console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
           console.log('window.TelegramWebviewProxy:', window.TelegramWebviewProxy);
-          console.log('window.parent.Telegram:', window.parent?.Telegram);
-          console.log('window.top.Telegram:', window.top?.Telegram);
+          
+          // Безопасная проверка родительских окон
+          try {
+            console.log('window.parent.Telegram:', window.parent?.Telegram);
+          } catch (e) {
+            console.log('Cannot access window.parent due to CORS');
+          }
+          
+          try {
+            console.log('window.top.Telegram:', window.top?.Telegram);
+          } catch (e) {
+            console.log('Cannot access window.top due to CORS');
+          }
+          
           console.log('URL search params:', window.location.search);
           console.log('tgWebAppData in URL:', window.location.search.includes('tgWebAppData'));
           console.log('==========================');
