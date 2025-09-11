@@ -68,7 +68,7 @@
       var config = {
         arguments: [],
         dataUrl: buildUrl + "/3b524a25720ccc448bde1d3d51159a39.data",
-        frameworkUrl: buildUrl + "/9d5fde7c67eb4e8c9f87ac8c4d8755bc.framework.js",
+        frameworkUrl: buildUrl + "/aace30115e713374a371a85d2671fb9e.framework.js",
         codeUrl: buildUrl + "/8f9fcebd9d3c6bf73ea2be4cf8be8ce4.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "FruitMerge",
@@ -126,6 +126,17 @@
           document.addEventListener('click', activateAudio);
           document.addEventListener('touchstart', activateAudio);
           document.addEventListener('keydown', activateAudio);
+          
+          // Отладочная информация о Telegram
+          console.log('=== TELEGRAM DEBUG INFO ===');
+          console.log('window.Telegram:', window.Telegram);
+          console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
+          console.log('window.TelegramWebviewProxy:', window.TelegramWebviewProxy);
+          console.log('window.parent.Telegram:', window.parent?.Telegram);
+          console.log('window.top.Telegram:', window.top?.Telegram);
+          console.log('URL search params:', window.location.search);
+          console.log('tgWebAppData in URL:', window.location.search.includes('tgWebAppData'));
+          console.log('==========================');
           
         }).catch((message) => {
           alert(message);
