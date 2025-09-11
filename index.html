@@ -3,6 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    
+    <!-- =================================================================== -->
+    <!-- ДОБАВЛЕНА СТРОКА ДЛЯ ИНТЕГРАЦИИ С TELEGRAM -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- =================================================================== -->
+
     <title>Unity Web Player | FruitMerge</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
@@ -22,14 +28,7 @@
     <script>
       window.addEventListener("load", function () {
         if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.register("ServiceWorker.js")
-            .then(function(registration) {
-              console.log('ServiceWorker registered successfully');
-            })
-            .catch(function(error) {
-              console.log('ServiceWorker registration failed:', error);
-              // Не критично для работы игры
-            });
+          navigator.serviceWorker.register("ServiceWorker.js");
         }
       });
 
@@ -39,12 +38,6 @@
       var progressBarFull = document.querySelector("#unity-progress-bar-full");
       var warningBanner = document.querySelector("#unity-warning");
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
       function unityShowBanner(msg, type) {
         function updateBannerVisibility() {
           warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
@@ -68,7 +61,7 @@
       var config = {
         arguments: [],
         dataUrl: buildUrl + "/3b524a25720ccc448bde1d3d51159a39.data",
-        frameworkUrl: buildUrl + "/aace30115e713374a371a85d2671fb9e.framework.js",
+        frameworkUrl: buildUrl + "/87c86ebd01c8abef48bd786a5360d669.framework.js", // Взят ваш новый frameworkUrl
         codeUrl: buildUrl + "/8f9fcebd9d3c6bf73ea2be4cf8be8ce4.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "FruitMerge",
@@ -77,21 +70,12 @@
         showBanner: unityShowBanner,
       };
 
-      // By default Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
       }
-
 
       loadingBar.style.display = "block";
 
@@ -101,55 +85,24 @@
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
         }).then((unityInstance) => {
-          // Сохраняем unityInstance в глобальной области видимости
+          // ===================================================================
+          // ЭТА ЧАСТЬ БЫЛА ВОССТАНОВЛЕНА. ОНА КРИТИЧЕСКИ ВАЖНА
+          // ===================================================================
+          
+          // Сохраняем unityInstance в глобальной области видимости,
+          // чтобы jslib мог отправлять в C# сообщения
           window.unityInstance = unityInstance;
           loadingBar.style.display = "none";
-          
-          // Добавляем обработчик для активации аудио при первом взаимодействии пользователя
-          const activateAudio = () => {
-            if (unityInstance && unityInstance.Module && unityInstance.Module.AudioContext) {
-              try {
-                if (unityInstance.Module.AudioContext.state === 'suspended') {
-                  unityInstance.Module.AudioContext.resume();
-                }
-              } catch (e) {
-                console.log('Audio context already active or not available');
-              }
-            }
-            // Удаляем обработчики после первого взаимодействия
-            document.removeEventListener('click', activateAudio);
-            document.removeEventListener('touchstart', activateAudio);
-            document.removeEventListener('keydown', activateAudio);
-          };
-          
-          // Добавляем обработчики для активации аудио
-          document.addEventListener('click', activateAudio);
-          document.addEventListener('touchstart', activateAudio);
-          document.addEventListener('keydown', activateAudio);
-          
-          // Отладочная информация о Telegram
+
+          // Отладочная информация, чтобы проверить, загрузился ли скрипт Telegram
           console.log('=== TELEGRAM DEBUG INFO ===');
           console.log('window.Telegram:', window.Telegram);
           console.log('window.Telegram.WebApp:', window.Telegram?.WebApp);
-          console.log('window.TelegramWebviewProxy:', window.TelegramWebviewProxy);
-          
-          // Безопасная проверка родительских окон
-          try {
-            console.log('window.parent.Telegram:', window.parent?.Telegram);
-          } catch (e) {
-            console.log('Cannot access window.parent due to CORS');
-          }
-          
-          try {
-            console.log('window.top.Telegram:', window.top?.Telegram);
-          } catch (e) {
-            console.log('Cannot access window.top due to CORS');
-          }
-          
-          console.log('URL search params:', window.location.search);
-          console.log('tgWebAppData in URL:', window.location.search.includes('tgWebAppData'));
           console.log('==========================');
-          
+          // ===================================================================
+          // КОНЕЦ ВОССТАНОВЛЕННОГО БЛОКА
+          // ===================================================================
+
         }).catch((message) => {
           alert(message);
         });
