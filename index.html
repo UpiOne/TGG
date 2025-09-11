@@ -1,186 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en-us">
+  <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Crypto Casino Game</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #000;
-            overflow: hidden;
-        }
-        
-        #unity-container {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        #unity-canvas {
-            background: #231F20;
-            display: block;
-        }
-        
-        #unity-loading-bar {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-        }
-        
-        #unity-logo {
-            width: 154px;
-            height: 130px;
-            background: url('unity-logo-dark.png') no-repeat center / contain;
-        }
-        
-        #unity-progress-bar-empty {
-            width: 141px;
-            height: 18px;
-            margin-top: 10px;
-            background: url('progress-bar-empty-dark.png') no-repeat center / contain;
-        }
-        
-        #unity-progress-bar-full {
-            width: 0%;
-            height: 18px;
-            background: url('progress-bar-full-dark.png') no-repeat center / contain;
-        }
-        
-        #unity-footer {
-            position: relative;
-        }
-        
-        .unity-footer {
-            position: relative;
-            height: 38px;
-            background: url('webgl-logo.png') no-repeat center / contain;
-        }
-        
-        .unity-webgl-logo {
-            float: left;
-            width: 204px;
-            height: 38px;
-            background: url('webgl-logo.png') no-repeat center / contain;
-        }
-        
-        .unity-fullscreen-button {
-            float: right;
-            width: 38px;
-            height: 38px;
-            background: url('fullscreen-button.png') no-repeat center / contain;
-        }
-    </style>
-</head>
-<body>
-    <div id="unity-container" class="unity-desktop">
-        <canvas id="unity-canvas" tabindex="-1"></canvas>
-        <div id="unity-loading-bar">
-            <div id="unity-logo"></div>
-            <div id="unity-progress-bar-empty">
-                <div id="unity-progress-bar-full"></div>
-            </div>
+    <title>Unity Web Player | FruitMerge</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="manifest" href="manifest.webmanifest">
+  </head>
+  <body>
+    <div id="unity-container">
+      <canvas id="unity-canvas" width=1920 height=1080 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
         </div>
-        <div id="unity-footer">
-            <div class="unity-webgl-logo"></div>
-            <div class="unity-fullscreen-button"></div>
-        </div>
+      </div>
+      <div id="unity-warning"> </div>
     </div>
-
-    <!-- Telegram WebApp Script -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
     <script>
-        // Инициализация Telegram WebApp
-        let tg = window.Telegram.WebApp;
-        
-        // Расширяем WebApp на весь экран
-        tg.expand();
-        
-        // Включаем кнопку закрытия
-        tg.enableClosingConfirmation();
-        
-        // Логируем информацию о WebApp
-        console.log('Telegram WebApp инициализирован');
-        console.log('Версия:', tg.version);
-        console.log('Платформа:', tg.platform);
-        console.log('Init Data:', tg.initData);
-        console.log('Пользователь:', tg.initDataUnsafe.user);
-        
-        // Функции для Unity
-        function GetTelegramWebAppData() {
-            return tg.initData || '';
+      window.addEventListener("load", function () {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("ServiceWorker.js");
         }
-        
-        function GetTelegramWebAppUser() {
-            return JSON.stringify(tg.initDataUnsafe.user || {});
+      });
+
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var warningBanner = document.querySelector("#unity-warning");
+
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
         }
-        
-        function IsTelegramWebApp() {
-            return true;
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
         }
-        
-        function GetTelegramWebAppVersion() {
-            return tg.version || '1.0';
-        }
-        
-        // Обработчики событий Telegram WebApp
-        tg.onEvent('viewportChanged', function() {
-            console.log('Viewport изменен');
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/6c26e8f4b165500f2bf484ebb3a6b173.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/89b1ce6c4b0264532ac1bfbb713b040e.data",
+        frameworkUrl: buildUrl + "/6b90ee42a0855b0065d7048b36fd63da.framework.js",
+        codeUrl: buildUrl + "/3ceec49104881250a40cb76479c05db8.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "FruitMerge",
+        productName: "FruitMerge",
+        productVersion: "0.3",
+        showBanner: unityShowBanner,
+      };
+
+      // By default Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+      }
+
+
+      loadingBar.style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          loadingBar.style.display = "none";
+        }).catch((message) => {
+          alert(message);
         });
-        
-        tg.onEvent('themeChanged', function() {
-            console.log('Тема изменена');
-        });
-        
-        // Уведомляем Unity о готовности
-        window.addEventListener('load', function() {
-            console.log('Telegram WebApp готов к работе');
-        });
+      };
+      document.body.appendChild(script);
     </script>
-
-    <!-- Unity WebGL Loader -->
-    <script>
-        var container = document.querySelector("#unity-container");
-        var canvas = document.querySelector("#unity-canvas");
-        var loadingBar = document.querySelector("#unity-loading-bar");
-        var progressBarFull = document.querySelector("#unity-progress-bar-full");
-        var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-
-        // Показываем индикатор загрузки
-        loadingBar.style.display = "block";
-
-        var buildUrl = "Build";
-        var loaderUrl = buildUrl + "/Build.loader.js";
-        var config = {
-            dataUrl: buildUrl + "/Build.data",
-            frameworkUrl: buildUrl + "/Build.framework.js",
-            codeUrl: buildUrl + "/Build.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "CryptoCasino",
-            productName: "Fruit Merge Game",
-            productVersion: "1.0",
-        };
-
-        // Создаем загрузчик Unity
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = () => {
-            createUnityInstance(canvas, config, (progress) => {
-                progressBarFull.style.width = 100 * progress + "%";
-            }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                console.log('Unity загружен успешно');
-            }).catch((message) => {
-                alert(message);
-            });
-        };
-        document.body.appendChild(script);
-    </script>
-</body>
+  </body>
 </html>
-
